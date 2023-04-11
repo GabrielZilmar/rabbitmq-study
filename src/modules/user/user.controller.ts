@@ -6,6 +6,7 @@ import {
   ParseIntPipe,
   Post,
 } from '@nestjs/common';
+import { EventPattern } from '@nestjs/microservices';
 import { IUser, IUserCreate } from '~modules/user/types';
 import { UserServices } from '~modules/user/user.service';
 
@@ -16,6 +17,11 @@ export class UserController {
   @Post('/create')
   async createUser(@Body() user: IUserCreate): Promise<IUser> {
     return this.appService.createUser(user);
+  }
+
+  @EventPattern({ cmd: 'user-created' })
+  async handleUserCreatedEvent(data: Record<string, unknown>) {
+    console.info(data);
   }
 
   @Get('/:id')

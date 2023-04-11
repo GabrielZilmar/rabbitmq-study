@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import UserDto from '~modules/user/user.dto';
 import { IReqresUser, IUser, IUserCreate } from '~modules/user/types';
@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from '~modules/user/schemas/user.schema';
 import { Model } from 'mongoose';
 import { HttpStatus } from '~utils/http-status';
+import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
 
 @Injectable()
 export class UserServices {
@@ -17,6 +18,7 @@ export class UserServices {
     private readonly httpService: HttpService,
     private readonly userDto: UserDto,
     @InjectModel(User.name) private userModel: Model<User>,
+    @Inject('RMQ_SERVICE') private client: ClientProxy,
   ) {
     this.reqresUrl = process.env.REQRES_URL;
   }
@@ -35,8 +37,12 @@ export class UserServices {
   async createUser(user: IUserCreate): Promise<IUser> {
     try {
       await this.preventDuplicatedUser(user.email);
-      const createdUser = new this.userModel(user);
-      return createdUser.save();
+
+      const newUser = new this.userModel(user);
+      const userCreated = await newUser.save();
+      this.client.emit({ cmd: 'user-created' }, userCreated);
+
+      return userCreated;
     } catch (err: unknown) {
       console.log(err);
       throw new HttpException(
