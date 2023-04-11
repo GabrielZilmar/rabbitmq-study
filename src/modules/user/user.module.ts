@@ -10,6 +10,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Avatar, AvatarSchema } from '~modules/user/schemas/avatar.schema';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import EmailSender from '~services/email-sender';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -36,8 +38,19 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       rootPath: join(__dirname, '..', 'public'),
       serveRoot: '/src/images',
     }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
+        secure: true,
+        auth: {
+          user: process.env.EMAIL_SENDER,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      },
+    }),
   ],
   controllers: [UserController],
-  providers: [UserServices, UserDto],
+  providers: [UserServices, UserDto, EmailSender],
 })
 export class UserModule {}

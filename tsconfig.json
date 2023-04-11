@@ -22,7 +22,7 @@
       "~modules/*": ["./src/modules/*"],
       "~test/*": ["./src/test/*"],
       "~utils/*": ["./src/utils/*"],
-      "~images/*": ["./src/images/*"],
+      "~services/*": ["./src/services/*"],
       "~/*": ["./src*"]
     }
   }

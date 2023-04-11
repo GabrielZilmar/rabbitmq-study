@@ -10,6 +10,7 @@ import { Model } from 'mongoose';
 import { HttpStatus } from '~utils/http-status';
 import { ClientProxy } from '@nestjs/microservices';
 import { Avatar } from '~modules/user/schemas/avatar.schema';
+import EmailSender from '~services/email-sender';
 
 @Injectable()
 export class UserServices {
@@ -18,6 +19,7 @@ export class UserServices {
   constructor(
     private readonly httpService: HttpService,
     private readonly userDto: UserDto,
+    private readonly emailSender: EmailSender,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Avatar.name) private avatarModel: Model<Avatar>,
     @Inject('RMQ_SERVICE') private client: ClientProxy,
@@ -40,6 +42,14 @@ export class UserServices {
     const avatar = await this.avatarModel.findOne({ userId }).exec();
 
     return avatar?.content || null;
+  }
+
+  async sendEmail(userEmail: string): Promise<void> {
+    this.emailSender.send({
+      to: userEmail,
+      subject: 'Accounted Created',
+      text: 'You user has been created on Payever test.',
+    });
   }
 
   async createUser(user: IUserCreate): Promise<IUser> {

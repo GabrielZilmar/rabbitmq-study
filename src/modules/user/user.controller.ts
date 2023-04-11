@@ -24,8 +24,8 @@ export class UserController {
   }
 
   @EventPattern({ cmd: 'user-created' })
-  async handleUserCreatedEvent(data: Record<string, unknown>) {
-    console.info(data);
+  async handleUserCreatedEvent(data: IUser) {
+    await this.appService.sendEmail(data.email);
   }
 
   @Get('/user/:id')
