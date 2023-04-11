@@ -21,6 +21,7 @@
     "paths": {
       "~modules/*": ["./src/modules/*"],
       "~test/*": ["./src/test/*"],
+      "~utils/*": ["./src/utils/*"],
       "~/*": ["./src*"]
     }
   }

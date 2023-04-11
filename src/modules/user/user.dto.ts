@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ReqresUser, User } from 'src/modules/user/types';
+import { IReqresUser, IUser } from '~modules/user/types';
 
 @Injectable()
 export default class UserDto {
   public toDto({
     data: { id, email, first_name, last_name, avatar },
-  }: ReqresUser): User {
+  }: IReqresUser): IUser {
     return {
       id,
       email,

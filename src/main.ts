@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { UserModule } from '~modules/user/user.module';
+import { AppModule } from '~//app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(UserModule);
+  const app = await NestFactory.create(AppModule);
+  app.enableCors();
   await app.listen(3000);
+
+  console.info(`Application is running on: ${await app.getUrl()}`);
 }
 
 bootstrap();

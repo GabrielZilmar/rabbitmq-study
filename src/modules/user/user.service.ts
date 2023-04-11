@@ -1,9 +1,13 @@
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import UserDto from '~modules/user/user.dto';
-import { ReqresUser, User } from '~modules/user/types';
+import { IReqresUser, IUser, IUserCreate } from '~modules/user/types';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from '~modules/user/schemas/user.schema';
+import { Model } from 'mongoose';
+import { HttpStatus } from '~utils/http-status';
 
 @Injectable()
 export class UserServices {
@@ -12,14 +16,40 @@ export class UserServices {
   constructor(
     private readonly httpService: HttpService,
     private readonly userDto: UserDto,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {
     this.reqresUrl = process.env.REQRES_URL;
   }
 
-  async getUser(userId: number): Promise<User> {
+  private async preventDuplicatedUser(email?: string): Promise<void> {
+    if (!email) {
+      throw new HttpException('Invalid email', HttpStatus.BAD_REQUEST);
+    }
+
+    const userExist = await this.userModel.findOne({ email }).exec();
+    if (userExist) {
+      throw new HttpException('User already exist', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async createUser(user: IUserCreate): Promise<IUser> {
+    try {
+      await this.preventDuplicatedUser(user.email);
+      const createdUser = new this.userModel(user);
+      return createdUser.save();
+    } catch (err: unknown) {
+      console.log(err);
+      throw new HttpException(
+        (err as Error).message,
+        (err as HttpException).getStatus() || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getUser(userId: number): Promise<IUser> {
     const { data: reqresUser } = await firstValueFrom(
       this.httpService
-        .get<ReqresUser>(`${this.reqresUrl}/users/${userId}`)
+        .get<IReqresUser>(`${this.reqresUrl}/users/${userId}`)
         .pipe(
           catchError((error: AxiosError) => {
             throw `An error happened! Could not get user. Error: ${error.message}`;

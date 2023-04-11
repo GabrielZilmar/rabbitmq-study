@@ -1,4 +1,4 @@
-export interface User {
+export interface IUser {
   id: number;
   email: string;
   firstName: string;
@@ -6,7 +6,7 @@ export interface User {
   avatarUrl: string;
 }
 
-export interface ReqresUser {
+export interface IReqresUser {
   data: {
     id: number;
     email: string;
@@ -18,4 +18,11 @@ export interface ReqresUser {
     url: string;
     text: string;
   };
+}
+
+export interface IUserCreate {
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
 }
