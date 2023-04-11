@@ -107,4 +107,23 @@ export class UserServices {
       throw new HttpException((err as Error).message, statusCode);
     }
   }
+
+  async deleteUserAvatar(userId: number): Promise<boolean> {
+    try {
+      const avatarExists = await this.avatarExists(userId);
+      if (!avatarExists) {
+        throw new HttpException('User avatar not found', HttpStatus.NOT_FOUND);
+      }
+
+      await this.avatarModel.deleteOne({ userId });
+      return true;
+    } catch (err: unknown) {
+      const statusCode =
+        typeof err === typeof HttpException
+          ? (err as HttpException).getStatus()
+          : HttpStatus.INTERNAL_SERVER_ERROR;
+
+      throw new HttpException((err as Error).message, statusCode);
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -47,5 +48,10 @@ export class UserController {
       'Content-Length': imgBuffer.length,
     });
     res.send(imgBuffer);
+  }
+
+  @Delete('/user/:id/avatar')
+  async deleteUserAvatar(@Param('id', new ParseIntPipe()) userId: number) {
+    return this.appService.deleteUserAvatar(userId);
   }
 }
