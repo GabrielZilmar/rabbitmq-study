@@ -8,7 +8,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from '~modules/user/schemas/user.schema';
 import { Model } from 'mongoose';
 import { HttpStatus } from '~utils/http-status';
-import { ClientProxy, RmqRecordBuilder } from '@nestjs/microservices';
+import { ClientProxy } from '@nestjs/microservices';
+import { Avatar } from '~modules/user/schemas/avatar.schema';
 
 @Injectable()
 export class UserServices {
@@ -18,6 +19,7 @@ export class UserServices {
     private readonly httpService: HttpService,
     private readonly userDto: UserDto,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Avatar.name) private avatarModel: Model<Avatar>,
     @Inject('RMQ_SERVICE') private client: ClientProxy,
   ) {
     this.reqresUrl = process.env.REQRES_URL;
@@ -34,6 +36,12 @@ export class UserServices {
     }
   }
 
+  private async avatarExists(userId: number): Promise<Buffer | null> {
+    const avatar = await this.avatarModel.findOne({ userId }).exec();
+
+    return avatar?.content || null;
+  }
+
   async createUser(user: IUserCreate): Promise<IUser> {
     try {
       await this.preventDuplicatedUser(user.email);
@@ -44,11 +52,12 @@ export class UserServices {
 
       return userCreated;
     } catch (err: unknown) {
-      console.log(err);
-      throw new HttpException(
-        (err as Error).message,
-        (err as HttpException).getStatus() || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      const statusCode =
+        typeof err === typeof HttpException
+          ? (err as HttpException).getStatus()
+          : HttpStatus.INTERNAL_SERVER_ERROR;
+
+      throw new HttpException((err as Error).message, statusCode);
     }
   }
 
@@ -64,5 +73,38 @@ export class UserServices {
     );
 
     return this.userDto.toDto(reqresUser);
+  }
+
+  async getUserAvatar(userId: number): Promise<Buffer> {
+    try {
+      const user = await this.getUser(userId);
+      const { avatarUrl } = user;
+
+      const avatarExists = await this.avatarExists(userId);
+      if (avatarExists) {
+        return avatarExists;
+      }
+
+      const response = this.httpService.get(avatarUrl, {
+        responseType: 'arraybuffer',
+      });
+      const { data } = await firstValueFrom(response);
+      const dataBuffer = Buffer.from(data, 'base64');
+
+      const newAvatar = new this.avatarModel({
+        userId,
+        content: dataBuffer,
+      });
+      await newAvatar.save();
+
+      return dataBuffer;
+    } catch (err: unknown) {
+      const statusCode =
+        typeof err === typeof HttpException
+          ? (err as HttpException).getStatus()
+          : HttpStatus.INTERNAL_SERVER_ERROR;
+
+      throw new HttpException((err as Error).message, statusCode);
+    }
   }
 }

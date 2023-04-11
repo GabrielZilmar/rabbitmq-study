@@ -7,6 +7,9 @@ import UserDto from '~modules/user/user.dto';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '~modules/user/schemas/user.schema';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { Avatar, AvatarSchema } from '~modules/user/schemas/avatar.schema';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
@@ -25,7 +28,14 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         },
       },
     ]),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Avatar.name, schema: AvatarSchema },
+    ]),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/src/images',
+    }),
   ],
   controllers: [UserController],
   providers: [UserServices, UserDto],
