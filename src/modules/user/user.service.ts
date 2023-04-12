@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpException, Inject, Injectable } from '@nestjs/common';
@@ -25,6 +26,33 @@ export class UserServices {
     @Inject('RMQ_SERVICE') private client: ClientProxy,
   ) {
     this.reqresUrl = process.env.REQRES_URL;
+  }
+
+  private async saveImage(userId: number, imageContent: Buffer): Promise<void> {
+    try {
+      const imagePath = `/tmp/${userId}.jpg`;
+
+      await fs.promises.writeFile(imagePath, imageContent, 'base64');
+    } catch (err) {
+      throw new HttpException(
+        (err as Error).message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async deleteImage(userId: number): Promise<void> {
+    try {
+      const imagePath = `/tmp/${userId}.jpg`;
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    } catch (err) {
+      throw new HttpException(
+        (err as Error).message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   private async preventDuplicatedUser(email?: string): Promise<void> {
@@ -63,9 +91,8 @@ export class UserServices {
       return userCreated;
     } catch (err: unknown) {
       const statusCode =
-        typeof err === typeof HttpException
-          ? (err as HttpException).getStatus()
-          : HttpStatus.INTERNAL_SERVER_ERROR;
+        (err as HttpException).getStatus?.() ||
+        HttpStatus.INTERNAL_SERVER_ERROR;
 
       throw new HttpException((err as Error).message, statusCode);
     }
@@ -106,13 +133,13 @@ export class UserServices {
         content: dataBuffer,
       });
       await newAvatar.save();
+      await this.saveImage(userId, dataBuffer);
 
       return dataBuffer;
     } catch (err: unknown) {
       const statusCode =
-        typeof err === typeof HttpException
-          ? (err as HttpException).getStatus()
-          : HttpStatus.INTERNAL_SERVER_ERROR;
+        (err as HttpException).getStatus?.() ||
+        HttpStatus.INTERNAL_SERVER_ERROR;
 
       throw new HttpException((err as Error).message, statusCode);
     }
@@ -126,12 +153,12 @@ export class UserServices {
       }
 
       await this.avatarModel.deleteOne({ userId });
+      await this.deleteImage(userId);
       return true;
     } catch (err: unknown) {
       const statusCode =
-        typeof err === typeof HttpException
-          ? (err as HttpException).getStatus()
-          : HttpStatus.INTERNAL_SERVER_ERROR;
+        (err as HttpException).getStatus?.() ||
+        HttpStatus.INTERNAL_SERVER_ERROR;
 
       throw new HttpException((err as Error).message, statusCode);
     }
