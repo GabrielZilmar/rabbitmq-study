@@ -9,10 +9,9 @@ import {
   Res,
 } from '@nestjs/common';
 import { EventPattern } from '@nestjs/microservices';
-import { IUser, IUserCreate } from '~modules/user/types';
-import { UserServices } from '~modules/user/user.service';
+import { IUser, IUserCreate } from '~/modules/user/types';
+import { UserServices } from '~/modules/user/user.service';
 import { Response } from 'express';
-import * as fs from 'fs';
 
 @Controller('/api')
 export class UserController {

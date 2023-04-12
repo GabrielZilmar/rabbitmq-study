@@ -17,13 +17,8 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "baseUrl": "./",
     "paths": {
-      "~modules/*": ["./src/modules/*"],
-      "~test/*": ["./src/test/*"],
-      "~utils/*": ["./src/utils/*"],
-      "~services/*": ["./src/services/*"],
-      "~/*": ["./src*"]
+      "~/*": ["src/*"]
     }
   }
 }

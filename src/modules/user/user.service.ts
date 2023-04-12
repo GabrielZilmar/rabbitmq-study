@@ -3,15 +3,15 @@ import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { AxiosError } from 'axios';
-import UserDto from '~modules/user/user.dto';
-import { IReqresUser, IUser, IUserCreate } from '~modules/user/types';
+import UserDto from '~/modules/user/user.dto';
+import { IReqresUser, IUser, IUserCreate } from '~/modules/user/types';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from '~modules/user/schemas/user.schema';
+import { User } from '~/modules/user/schemas/user.schema';
 import { Model } from 'mongoose';
-import { HttpStatus } from '~utils/http-status';
+import { HttpStatus } from '~/utils/http-status';
 import { ClientProxy } from '@nestjs/microservices';
-import { Avatar } from '~modules/user/schemas/avatar.schema';
-import EmailSender from '~services/email-sender';
+import { Avatar } from '~/modules/user/schemas/avatar.schema';
+import EmailSender from '~/services/email-sender';
 
 @Injectable()
 export class UserServices {

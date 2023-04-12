@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IReqresUser, IUser } from '~modules/user/types';
+import { IReqresUser, IUser } from '~/modules/user/types';
 
 @Injectable()
 export default class UserDto {

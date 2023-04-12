@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { UserController } from '~modules/user/user.controller';
-import { UserServices } from '~modules/user/user.service';
-import UserDto from '~modules/user/user.dto';
+import { UserController } from '~/modules/user/user.controller';
+import { UserServices } from '~/modules/user/user.service';
+import UserDto from '~/modules/user/user.dto';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '~modules/user/schemas/user.schema';
+import { User, UserSchema } from '~/modules/user/schemas/user.schema';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { Avatar, AvatarSchema } from '~modules/user/schemas/avatar.schema';
+import { Avatar, AvatarSchema } from '~/modules/user/schemas/avatar.schema';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import EmailSender from '~services/email-sender';
+import EmailSender from '~/services/email-sender';
 import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({

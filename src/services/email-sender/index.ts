@@ -1,6 +1,6 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
-import EmailSenderError from '~services/email-sender/errors';
+import EmailSenderError from '~/services/email-sender/errors';
 
 export type EmailSendParams = {
   to: string;
