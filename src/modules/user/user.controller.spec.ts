@@ -16,6 +16,9 @@ import { UserServices } from '~/modules/user/user.service';
 import EmailSender from '~/services/email-sender';
 
 describe('UserController', () => {
+  let userController: UserController;
+  let userModel: Model<User>;
+
   beforeEach(async () => {
     const userModule: TestingModule = await Test.createTestingModule({
       imports: [
@@ -61,20 +64,8 @@ describe('UserController', () => {
       providers: [UserServices, UserDto, EmailSender],
     }).compile();
 
+    userModel = userModule.get<Model<User>>(getModelToken('User'));
     userController = userModule.get<UserController>(UserController);
-  });
-
-  let userController: UserController;
-  let userModel: Model<User>;
-
-  beforeEach(async () => {
-    const moduleRef: TestingModule = await Test.createTestingModule({
-      controllers: [UserController],
-      providers: [UserServices],
-    }).compile();
-
-    userController = moduleRef.get<UserController>(UserController);
-    userModel = moduleRef.get<Model<User>>(getModelToken('UserModel'));
   });
 
   afterEach(async () => {
@@ -85,14 +76,13 @@ describe('UserController', () => {
     it('should create a user', async () => {
       const user = await userController.createUser(UserMock.toCreate);
 
-      expect(user).toMatchObject({
-        email: UserMock.toCreate.email,
-        firstName: UserMock.toCreate.firstName,
-        lastName: UserMock.toCreate.lastName,
-        avatarUrl: UserMock.toCreate.avatarUrl,
-        _id: expect.any(String),
-        __v: expect.any(Number),
-      });
+      const expected = {
+        ...UserMock.toCreate,
+        __v: 0,
+        _id: expect.any(Object),
+      };
+
+      expect(user).toMatchObject(expected);
     });
   });
 });
