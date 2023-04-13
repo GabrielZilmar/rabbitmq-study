@@ -8,8 +8,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from '~/modules/user/schemas/user.schema';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Avatar, AvatarSchema } from '~/modules/user/schemas/avatar.schema';
-import { join } from 'path';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import EmailSender from '~/services/email-sender';
 import { MailerModule } from '@nestjs-modules/mailer';
 
@@ -34,10 +32,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
       { name: User.name, schema: UserSchema },
       { name: Avatar.name, schema: AvatarSchema },
     ]),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      serveRoot: '/src/images',
-    }),
     MailerModule.forRoot({
       transport: {
         host: process.env.EMAIL_HOST,

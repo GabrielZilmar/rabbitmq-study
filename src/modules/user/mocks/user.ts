@@ -1,6 +1,6 @@
 export const UserMock = {
   toCreate: {
-    email: 'email@test.com',
+    email: 'gabrielczilmar@gmail.com',
     firstName: 'string',
     lastName: 'string',
     avatarUrl: 'string',

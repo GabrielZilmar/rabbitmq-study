@@ -55,7 +55,7 @@ export class UserServices {
     }
   }
 
-  private async preventDuplicatedUser(email?: string): Promise<void> {
+  async preventDuplicatedUser(email?: string): Promise<void> {
     if (!email) {
       throw new HttpException('Invalid email', HttpStatus.BAD_REQUEST);
     }
@@ -66,7 +66,7 @@ export class UserServices {
     }
   }
 
-  private async avatarExists(userId: number): Promise<Buffer | null> {
+  async avatarExists(userId: number): Promise<Buffer | null> {
     const avatar = await this.avatarModel.findOne({ userId }).exec();
 
     return avatar?.content || null;

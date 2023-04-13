@@ -3,10 +3,8 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
-import { join } from 'path';
 import { UserMock } from '~/modules/user/mocks/user';
 import { Avatar, AvatarSchema } from '~/modules/user/schemas/avatar.schema';
 import { User, UserSchema } from '~/modules/user/schemas/user.schema';
@@ -16,10 +14,11 @@ import { UserServices } from '~/modules/user/user.service';
 import EmailSender from '~/services/email-sender';
 
 describe('UserController', () => {
-  let userController: UserController;
   let userModel: Model<User>;
+  let userController: UserController;
+  let userServices: UserServices;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const userModule: TestingModule = await Test.createTestingModule({
       imports: [
         HttpModule,
@@ -44,10 +43,6 @@ describe('UserController', () => {
           { name: User.name, schema: UserSchema },
           { name: Avatar.name, schema: AvatarSchema },
         ]),
-        ServeStaticModule.forRoot({
-          rootPath: join(__dirname, '..', 'public'),
-          serveRoot: '/src/images',
-        }),
         MailerModule.forRoot({
           transport: {
             host: process.env.EMAIL_HOST,
@@ -66,6 +61,7 @@ describe('UserController', () => {
 
     userModel = userModule.get<Model<User>>(getModelToken('User'));
     userController = userModule.get<UserController>(UserController);
+    userServices = userModule.get<UserServices>(UserServices);
   });
 
   afterEach(async () => {
@@ -74,6 +70,11 @@ describe('UserController', () => {
 
   describe('root', () => {
     it('should create a user', async () => {
+      const handleUserCreatedEventMock = jest.fn();
+      jest
+        .spyOn(userServices, 'preventDuplicatedUser')
+        .mockImplementation(handleUserCreatedEventMock);
+
       const user = await userController.createUser(UserMock.toCreate);
 
       const expected = {
@@ -83,6 +84,25 @@ describe('UserController', () => {
       };
 
       expect(user).toMatchObject(expected);
+      expect(handleUserCreatedEventMock).toHaveBeenCalledWith(user.email);
+    });
+
+    it('should create a user', async () => {
+      const handleUserCreatedEventMock = jest.fn();
+      jest
+        .spyOn(userServices, 'preventDuplicatedUser')
+        .mockImplementation(handleUserCreatedEventMock);
+
+      const user = await userController.createUser(UserMock.toCreate);
+
+      const expected = {
+        ...UserMock.toCreate,
+        __v: 0,
+        _id: expect.any(Object),
+      };
+
+      expect(user).toMatchObject(expected);
+      expect(handleUserCreatedEventMock).toHaveBeenCalledWith(user.email);
     });
   });
 });
