@@ -133,9 +133,26 @@ export class UserServices {
         return avatarExists;
       }
 
-      const response = this.httpService.get(avatarUrl, {
-        responseType: 'arraybuffer',
-      });
+      const response = this.httpService
+        .get(avatarUrl, {
+          responseType: 'arraybuffer',
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            const statusCode = error.response.status;
+            if (statusCode === HttpStatus.NOT_FOUND) {
+              throw new HttpException(
+                `An error happened! Could not get user avatar, invalid  avatar Id.`,
+                statusCode,
+              );
+            }
+
+            throw new HttpException(
+              `An error happened! Could not get user avatar. Error: ${error.message}`,
+              statusCode,
+            );
+          }),
+        );
       const { data } = await firstValueFrom(response);
       const dataBuffer = Buffer.from(data, 'base64');
 
