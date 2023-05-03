@@ -104,7 +104,18 @@ export class UserServices {
         .get<IReqresUser>(`${this.reqresUrl}/users/${userId}`)
         .pipe(
           catchError((error: AxiosError) => {
-            throw `An error happened! Could not get user. Error: ${error.message}`;
+            const statusCode = error.response.status;
+            if (statusCode === HttpStatus.NOT_FOUND) {
+              throw new HttpException(
+                `An error happened! Could not get user, invalid User Id.`,
+                statusCode,
+              );
+            }
+
+            throw new HttpException(
+              `An error happened! Could not get user. Error: ${error.message}`,
+              statusCode,
+            );
           }),
         ),
     );
