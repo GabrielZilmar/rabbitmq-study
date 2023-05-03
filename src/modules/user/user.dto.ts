@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
-import { IReqresUser, IUser } from '~/modules/user/types';
+import { IPersistenceUser, IReqresUser, IUser } from '~/modules/user/types';
 
 @Injectable()
 export default class UserDto {
@@ -20,7 +20,7 @@ export default class UserDto {
   @IsNotEmpty()
   avatarUrl: string;
 
-  public toDto({
+  public regresToDto({
     data: { id, email, first_name, last_name, avatar },
   }: IReqresUser): IUser {
     return {
@@ -29,6 +29,22 @@ export default class UserDto {
       firstName: first_name,
       lastName: last_name,
       avatarUrl: avatar,
+    };
+  }
+
+  public persistenceToDto({
+    email,
+    firstName,
+    lastName,
+    avatarUrl,
+    _id,
+  }: IPersistenceUser): IUser {
+    return {
+      id: _id.toString(),
+      email,
+      firstName: firstName,
+      lastName: lastName,
+      avatarUrl,
     };
   }
 }

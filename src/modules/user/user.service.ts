@@ -88,7 +88,7 @@ export class UserServices {
       const userCreated = await newUser.save();
       this.client.emit({ cmd: 'user-created' }, userCreated);
 
-      return userCreated;
+      return this.userDto.persistenceToDto(userCreated);
     } catch (err: unknown) {
       const statusCode =
         (err as HttpException).getStatus?.() ||
@@ -120,7 +120,7 @@ export class UserServices {
         ),
     );
 
-    return this.userDto.toDto(reqresUser);
+    return this.userDto.regresToDto(reqresUser);
   }
 
   async getUserAvatar(userId: number): Promise<Buffer> {
