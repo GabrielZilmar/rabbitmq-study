@@ -18,7 +18,6 @@ describe('UserController', () => {
   let userController: UserController;
   let userServices: UserServices;
   let rabbitMQService: ClientProxy;
-  let emailSender: EmailSender;
 
   beforeAll(async () => {
     const userModule: TestingModule = await Test.createTestingModule({
@@ -65,7 +64,6 @@ describe('UserController', () => {
     userController = userModule.get<UserController>(UserController);
     userServices = userModule.get<UserServices>(UserServices);
     rabbitMQService = userModule.get<ClientProxy>('RMQ_SERVICE');
-    emailSender = userModule.get<EmailSender>(EmailSender);
   });
 
   afterEach(async () => {
