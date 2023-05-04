@@ -79,26 +79,7 @@ describe('UserController', () => {
 
       const expected = {
         ...UserMock.toCreate,
-        __v: 0,
-        _id: expect.any(Object),
-      };
-
-      expect(user).toMatchObject(expected);
-      expect(handleUserCreatedEventMock).toHaveBeenCalledWith(user.email);
-    });
-
-    it('should create a user', async () => {
-      const handleUserCreatedEventMock = jest.fn();
-      jest
-        .spyOn(userServices, 'preventDuplicatedUser')
-        .mockImplementation(handleUserCreatedEventMock);
-
-      const user = await userController.createUser(UserMock.toCreate);
-
-      const expected = {
-        ...UserMock.toCreate,
-        __v: 0,
-        _id: expect.any(Object),
+        id: expect.any(String),
       };
 
       expect(user).toMatchObject(expected);
