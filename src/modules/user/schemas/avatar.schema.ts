@@ -9,7 +9,7 @@ export class Avatar {
   userId: string;
 
   @Prop()
-  content: Buffer;
+  content: string;
 }
 
 export const AvatarSchema = SchemaFactory.createForClass(Avatar);

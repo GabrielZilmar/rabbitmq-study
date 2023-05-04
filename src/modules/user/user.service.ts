@@ -66,7 +66,7 @@ export class UserServices {
     }
   }
 
-  async avatarExists(userId: number): Promise<Buffer | null> {
+  async avatarExists(userId: number): Promise<string | null> {
     const avatar = await this.avatarModel.findOne({ userId }).exec();
 
     return avatar?.content || null;
@@ -86,9 +86,10 @@ export class UserServices {
 
       const newUser = new this.userModel(user);
       const userCreated = await newUser.save();
-      this.client.emit({ cmd: 'user-created' }, userCreated);
+      const userDto = this.userDto.persistenceToDto(userCreated);
+      this.client.emit({ cmd: 'user-created' }, userDto);
 
-      return userCreated;
+      return userDto;
     } catch (err: unknown) {
       const statusCode =
         (err as HttpException).getStatus?.() ||
@@ -104,15 +105,26 @@ export class UserServices {
         .get<IReqresUser>(`${this.reqresUrl}/users/${userId}`)
         .pipe(
           catchError((error: AxiosError) => {
-            throw `An error happened! Could not get user. Error: ${error.message}`;
+            const statusCode = error.response.status;
+            if (statusCode === HttpStatus.NOT_FOUND) {
+              throw new HttpException(
+                `An error happened! Could not get user, invalid User Id.`,
+                statusCode,
+              );
+            }
+
+            throw new HttpException(
+              `An error happened! Could not get user. Error: ${error.message}`,
+              statusCode,
+            );
           }),
         ),
     );
 
-    return this.userDto.toDto(reqresUser);
+    return this.userDto.regresToDto(reqresUser);
   }
 
-  async getUserAvatar(userId: number): Promise<Buffer> {
+  async getUserAvatar(userId: number): Promise<string> {
     try {
       const user = await this.getUser(userId);
       const { avatarUrl } = user;
@@ -122,20 +134,38 @@ export class UserServices {
         return avatarExists;
       }
 
-      const response = this.httpService.get(avatarUrl, {
-        responseType: 'arraybuffer',
-      });
+      const response = this.httpService
+        .get(avatarUrl, {
+          responseType: 'arraybuffer',
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            const statusCode = error.response.status;
+            if (statusCode === HttpStatus.NOT_FOUND) {
+              throw new HttpException(
+                `An error happened! Could not get user avatar, invalid  avatar Id.`,
+                statusCode,
+              );
+            }
+
+            throw new HttpException(
+              `An error happened! Could not get user avatar. Error: ${error.message}`,
+              statusCode,
+            );
+          }),
+        );
       const { data } = await firstValueFrom(response);
       const dataBuffer = Buffer.from(data, 'base64');
+      const dataBase64 = dataBuffer.toString('base64');
 
       const newAvatar = new this.avatarModel({
         userId,
-        content: dataBuffer,
+        content: dataBase64,
       });
       await newAvatar.save();
       await this.saveImage(userId, dataBuffer);
 
-      return dataBuffer;
+      return dataBase64;
     } catch (err: unknown) {
       const statusCode =
         (err as HttpException).getStatus?.() ||

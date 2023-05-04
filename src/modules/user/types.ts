@@ -1,5 +1,7 @@
+import { Types } from 'mongoose';
+
 export interface IUser {
-  id: number;
+  id: string | number;
   email: string;
   firstName: string;
   lastName: string;
@@ -18,6 +20,15 @@ export interface IReqresUser {
     url: string;
     text: string;
   };
+}
+
+export interface IPersistenceUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
+  _id: Types.ObjectId;
+  __v?: number;
 }
 
 export interface IUserCreate {

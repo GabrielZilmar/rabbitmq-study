@@ -1,7 +1,7 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ClientProxy, ClientsModule, Transport } from '@nestjs/microservices';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
@@ -17,6 +17,7 @@ describe('UserController', () => {
   let userModel: Model<User>;
   let userController: UserController;
   let userServices: UserServices;
+  let rabbitMQService: ClientProxy;
 
   beforeAll(async () => {
     const userModule: TestingModule = await Test.createTestingModule({
@@ -62,6 +63,7 @@ describe('UserController', () => {
     userModel = userModule.get<Model<User>>(getModelToken('User'));
     userController = userModule.get<UserController>(UserController);
     userServices = userModule.get<UserServices>(UserServices);
+    rabbitMQService = userModule.get<ClientProxy>('RMQ_SERVICE');
   });
 
   afterEach(async () => {
@@ -70,39 +72,39 @@ describe('UserController', () => {
 
   describe('root', () => {
     it('should create a user', async () => {
-      const handleUserCreatedEventMock = jest.fn();
+      const handleUserPreventDuplicatedMock = jest.fn();
       jest
         .spyOn(userServices, 'preventDuplicatedUser')
-        .mockImplementation(handleUserCreatedEventMock);
+        .mockImplementation(handleUserPreventDuplicatedMock);
+
+      const handleClientEmitEventMock = jest.fn();
+      jest
+        .spyOn(rabbitMQService, 'emit')
+        .mockImplementation(handleClientEmitEventMock);
 
       const user = await userController.createUser(UserMock.toCreate);
 
       const expected = {
         ...UserMock.toCreate,
-        __v: 0,
-        _id: expect.any(Object),
+        id: expect.any(String),
       };
 
       expect(user).toMatchObject(expected);
-      expect(handleUserCreatedEventMock).toHaveBeenCalledWith(user.email);
+      expect(handleUserPreventDuplicatedMock).toHaveBeenCalledWith(user.email);
+      expect(handleClientEmitEventMock).toHaveBeenCalledWith(
+        { cmd: 'user-created' },
+        user,
+      );
     });
 
-    it('should create a user', async () => {
-      const handleUserCreatedEventMock = jest.fn();
-      jest
-        .spyOn(userServices, 'preventDuplicatedUser')
-        .mockImplementation(handleUserCreatedEventMock);
-
-      const user = await userController.createUser(UserMock.toCreate);
-
-      const expected = {
-        ...UserMock.toCreate,
-        __v: 0,
-        _id: expect.any(Object),
-      };
-
-      expect(user).toMatchObject(expected);
-      expect(handleUserCreatedEventMock).toHaveBeenCalledWith(user.email);
+    it('should not create a duplicated user', async () => {
+      try {
+        await userController.createUser(UserMock.toCreate);
+        const duplicatedUser = UserMock.toCreate;
+        await userController.createUser(duplicatedUser);
+      } catch (error) {
+        expect((error as Error).message).toContain('dup key');
+      }
     });
   });
 });
