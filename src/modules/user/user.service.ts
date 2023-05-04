@@ -66,7 +66,7 @@ export class UserServices {
     }
   }
 
-  async avatarExists(userId: number): Promise<Buffer | null> {
+  async avatarExists(userId: number): Promise<string | null> {
     const avatar = await this.avatarModel.findOne({ userId }).exec();
 
     return avatar?.content || null;
@@ -123,7 +123,7 @@ export class UserServices {
     return this.userDto.regresToDto(reqresUser);
   }
 
-  async getUserAvatar(userId: number): Promise<Buffer> {
+  async getUserAvatar(userId: number): Promise<string> {
     try {
       const user = await this.getUser(userId);
       const { avatarUrl } = user;
@@ -155,15 +155,16 @@ export class UserServices {
         );
       const { data } = await firstValueFrom(response);
       const dataBuffer = Buffer.from(data, 'base64');
+      const dataBase64 = dataBuffer.toString('base64');
 
       const newAvatar = new this.avatarModel({
         userId,
-        content: dataBuffer,
+        content: dataBase64,
       });
       await newAvatar.save();
       await this.saveImage(userId, dataBuffer);
 
-      return dataBuffer;
+      return dataBase64;
     } catch (err: unknown) {
       const statusCode =
         (err as HttpException).getStatus?.() ||

@@ -6,12 +6,10 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Res,
 } from '@nestjs/common';
 import { EventPattern } from '@nestjs/microservices';
 import { IUser } from '~/modules/user/types';
 import { UserServices } from '~/modules/user/user.service';
-import { Response } from 'express';
 import UserDto from '~/modules/user/user.dto';
 
 @Controller('/api')
@@ -36,18 +34,12 @@ export class UserController {
   }
 
   @Get('/user/:id/avatar')
-  async getUserAvatar(
-    @Param('id', new ParseIntPipe()) userId: number,
-    @Res() res: Response,
-  ) {
-    const imgBuffer = await this.appService.getUserAvatar(userId);
-    const contentType = 'image/jpeg';
+  async getUserAvatar(@Param('id', new ParseIntPipe()) userId: number) {
+    const imgBase64 = await this.appService.getUserAvatar(userId);
 
-    res.set({
-      'Content-Type': contentType,
-      'Content-Length': imgBuffer.length,
-    });
-    res.send(imgBuffer);
+    return {
+      imageBase64: imgBase64,
+    };
   }
 
   @Delete('/user/:id/avatar')
