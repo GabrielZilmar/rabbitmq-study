@@ -86,9 +86,10 @@ export class UserServices {
 
       const newUser = new this.userModel(user);
       const userCreated = await newUser.save();
-      this.client.emit({ cmd: 'user-created' }, userCreated);
+      const userDto = this.userDto.persistenceToDto(userCreated);
+      this.client.emit({ cmd: 'user-created' }, userDto);
 
-      return this.userDto.persistenceToDto(userCreated);
+      return userDto;
     } catch (err: unknown) {
       const statusCode =
         (err as HttpException).getStatus?.() ||
