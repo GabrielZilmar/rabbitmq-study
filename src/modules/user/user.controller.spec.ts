@@ -85,5 +85,15 @@ describe('UserController', () => {
       expect(user).toMatchObject(expected);
       expect(handleUserCreatedEventMock).toHaveBeenCalledWith(user.email);
     });
+
+    it('should not create a duplicated user', async () => {
+      try {
+        await userController.createUser(UserMock.toCreate);
+        const duplicatedUser = UserMock.toCreate;
+        await userController.createUser(duplicatedUser);
+      } catch (error) {
+        expect((error as Error).message).toContain('dup key');
+      }
+    });
   });
 });
