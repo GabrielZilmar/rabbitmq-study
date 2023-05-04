@@ -1,6 +1,7 @@
+import * as request from 'supertest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '~/app.module';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -12,5 +13,9 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+  });
+
+  it('should init app', () => {
+    request(app.getHttpServer()).get('/api/user/1').expect(200);
   });
 });
